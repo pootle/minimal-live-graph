@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Raspberry pi monitor</title>
+        <meta charset="UTF-8">
+        <script src="smoothie.js"></script>
+        <script type="text/javascript" >
+
+            function init() {
+                var tempdataset = new TimeSeries()
+                var templine = new SmoothieChart({ fps: 30, millisPerPixel: 200, grid: { strokeStyle: '#555555', lineWidth: 3, millisPerLine: 5000, verticalSections: 4}, tooltip: true});
+                templine.addTimeSeries(tempdataset);
+                templine.streamTo(document.getElementById('pitempchart'), 1000);
+
+                if (!!window.EventSource) {
+                    var esource = new EventSource('ssupdates.html');
+                    esource.addEventListener('message', function(e) {
+                        var newinfo=JSON.parse(e.data);
+                        tempdataset.append(Date.now(),newinfo, newinfo)
+                    }, false);
+                    esource.addEventListener('open', function(e) {
+                        var tempel = document.getElementById("note");
+                        tempel.innerHTML="update Connection established"
+                    }, false);
+                    esource.addEventListener('error', function(e) {
+                        if (e.readyState == EventSource.CLOSED) {
+                            var tempel = document.getElementById("note");
+                            tempel.innerHTML="update connection lost"
+                        }
+                    }, false);
+
+                } else {
+                    var tempel = document.getElementById("note");
+                    tempel.innerHTML="I'm sorry Dave, live updates not supported by this browser"
+                }
+            }
+        
+            
+        </script>
+    </head>
+    <body onload="init()">
+          <h1>This is your Raspberry pi</h1>
+          <p id="note">blank</p>
+          <canvas id="pitempchart" width="400" height="100"></canvas>
+    </body>
+</html>
